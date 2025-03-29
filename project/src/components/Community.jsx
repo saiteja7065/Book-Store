@@ -12,6 +12,9 @@ const Community = () => {
     content: '',
     tags: []
   });
+  const [isJoiningGroup, setIsJoiningGroup] = useState(false);
+  const [isLikingDiscussion, setIsLikingDiscussion] = useState(false);
+  const [isSharingDiscussion, setIsSharingDiscussion] = useState(false);
 
   const discussions = [
     {
@@ -98,17 +101,23 @@ const Community = () => {
     setNewDiscussion({ title: '', content: '', tags: [] });
   };
 
-  const handleJoinGroup = (groupId) => {
+  const handleJoinGroup = async (groupId) => {
+    setIsJoiningGroup(true);
     toast.success('Successfully joined the reading group!');
+    setTimeout(() => setIsJoiningGroup(false), 500); // Simulate delay
   };
 
-  const handleLikeDiscussion = (discussionId) => {
+  const handleLikeDiscussion = async (discussionId) => {
+    setIsLikingDiscussion(true);
     toast.success('Discussion liked!');
+    setTimeout(() => setIsLikingDiscussion(false), 500); // Simulate delay
   };
 
-  const handleShareDiscussion = (discussionId) => {
+  const handleShareDiscussion = async (discussionId) => {
+    setIsSharingDiscussion(true);
     navigator.clipboard.writeText(window.location.href + `#discussion-${discussionId}`);
     toast.success('Link copied to clipboard!');
+    setTimeout(() => setIsSharingDiscussion(false), 500); // Simulate delay
   };
 
   return (
@@ -203,8 +212,13 @@ const Community = () => {
                             ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                             : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-800'
                         }`}
+                        disabled={isJoiningGroup}
                       >
-                        {group.isJoined ? 'Joined' : 'Join Group'}
+                        {isJoiningGroup ? (
+                          <div className="w-4 h-4 border-2 border-t-blue-400 animate-spin rounded-full mx-auto"></div>
+                        ) : (
+                          group.isJoined ? 'Joined' : 'Join Group'
+                        )}
                       </button>
                       {group.isJoined && (
                         <a
@@ -332,11 +346,16 @@ const Community = () => {
                       <button
                         onClick={() => handleLikeDiscussion(discussion.id)}
                         className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400"
+                        disabled={isLikingDiscussion}
                       >
-                        <Heart
-                          size={16}
-                          className={discussion.isLiked ? 'fill-current text-red-500' : ''}
-                        />
+                        {isLikingDiscussion ? (
+                          <div className="w-4 h-4 border-2 border-t-blue-400 animate-spin rounded-full mx-auto"></div>
+                        ) : (
+                          <Heart
+                            size={16}
+                            className={discussion.isLiked ? 'fill-current text-red-500' : ''}
+                          />
+                        )}
                         {discussion.likes} likes
                       </button>
                       <span className="flex items-center gap-1">
@@ -346,8 +365,13 @@ const Community = () => {
                       <button
                         onClick={() => handleShareDiscussion(discussion.id)}
                         className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400"
+                        disabled={isSharingDiscussion}
                       >
-                        <Share2 size={16} />
+                        {isSharingDiscussion ? (
+                          <div className="w-4 h-4 border-2 border-t-blue-400 animate-spin rounded-full mx-auto"></div>
+                        ) : (
+                          <Share2 size={16} />
+                        )}
                         Share
                       </button>
                     </div>

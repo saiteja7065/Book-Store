@@ -2,21 +2,33 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Menu, X, LogOut, Sun, Moon, Users, Trophy } from 'lucide-react';
 import { useAuth } from './AuthContext';
+import Loader from './Loader'; // Import the Loader component
 
 export default function Header({ cartItemsCount = 0 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDarkModeToggling, setIsDarkModeToggling] = useState(false);
   const { currentUser, logout, darkMode, toggleDarkMode } = useAuth();
   const navigate = useNavigate();
 
   const navLinks = ['Home', 'Shop', 'Community', 'Challenges', 'About', 'Contact'];
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await logout();
       navigate('/');
     } catch (error) {
       console.error('Failed to log out');
+    } finally {
+      setIsLoggingOut(false);
     }
+  };
+
+  const handleToggleDarkMode = () => {
+    setIsDarkModeToggling(true);
+    toggleDarkMode();
+    setTimeout(() => setIsDarkModeToggling(false), 500); // Simulate a delay
   };
 
   return (
@@ -51,12 +63,17 @@ export default function Header({ cartItemsCount = 0 }) {
                   {link}
                 </Link>
               ))}
+            </div>
 
+            <div className="flex items-center space-x-4">
               <button
-                onClick={toggleDarkMode}
+                onClick={handleToggleDarkMode}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                disabled={isDarkModeToggling}
               >
-                {darkMode ? (
+                {isDarkModeToggling ? (
+                  <Loader size={20} /> // Use Loader component for dark mode toggling
+                ) : darkMode ? (
                   <Sun className="text-yellow-500" size={20} />
                 ) : (
                   <Moon className="text-gray-600" size={20} />
@@ -64,19 +81,24 @@ export default function Header({ cartItemsCount = 0 }) {
               </button>
 
               {currentUser ? (
-                <div className="flex items-center space-x-4">
+                <div className="hidden md:flex items-center space-x-4">
                   <span className="text-gray-600 dark:text-gray-300">
                     Hello, {currentUser.displayName || currentUser.email}
                   </span>
                   <button
                     onClick={handleLogout}
                     className="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400"
+                    disabled={isLoggingOut}
                   >
-                    <LogOut size={20} />
+                    {isLoggingOut ? (
+                      <Loader size={20} /> // Use Loader component for logout action
+                    ) : (
+                      <LogOut size={20} />
+                    )}
                   </button>
                 </div>
               ) : (
-                <div className="space-x-4">
+                <div className="hidden md:flex space-x-4">
                   <Link
                     to="/login"
                     className="bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"

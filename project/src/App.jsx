@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './components/AuthContext';
@@ -14,9 +14,12 @@ import Contact from './components/Contact';
 import BookDetails from './components/BookDetails';
 import Community from './components/Community';
 import ReadingChallenges from './components/ReadingChallenges';
+import Loader from './components/Loader';
 
 const App = () => {
   const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [books, setBooks] = useState([]);
 
   const handleAddToCart = (book) => {
     setCartItems(prevItems => {
@@ -50,12 +53,57 @@ const App = () => {
     );
   };
 
+  const handleNavigation = (callback) => {
+    setLoading(true);
+    setTimeout(() => {
+      callback();
+      setLoading(false);
+    }, 1000); // Simulate loading time
+  };
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('https://api.example.com/books'); // Replace with actual API URL
+        const data = await response.json();
+        setBooks(data);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
         <div className="flex flex-col min-h-screen dark:bg-gray-900">
           <Header cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)} />
           <main className="flex-grow">
+            {loading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader size={48} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                {books.map(book => (
+                  <div key={book.id} className="bg-white dark:bg-gray-800 p-4 rounded shadow">
+                    <h3 className="text-lg font-bold">{book.title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{book.author}</p>
+                    <button
+                      className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                      onClick={() => handleAddToCart(book)}
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

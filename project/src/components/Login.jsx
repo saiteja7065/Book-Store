@@ -11,6 +11,7 @@ export default function Login() {
     email: '',
     password: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
   const { login, signup, currentUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +29,7 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
+    setIsLoading(true);
     try {
       if (isLogin) {
         await login(formData.email, formData.password);
@@ -41,6 +42,8 @@ export default function Login() {
     } catch (error) {
       console.error('Auth error:', error);
       toast.error(error.message || (isLogin ? 'Failed to log in' : 'Failed to create account'));
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -57,7 +60,6 @@ export default function Login() {
               : 'Join us and start exploring amazing books'}
           </p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
             <>
@@ -115,15 +117,18 @@ export default function Login() {
               onChange={handleChange}
             />
           </div>
-
           <button
             type="submit"
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors font-medium dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            disabled={isLoading}
           >
-            {isLogin ? 'Sign In' : 'Create Account'}
+            {isLoading ? (
+              <div className="w-6 h-6 border-2 border-t-blue-400 animate-spin rounded-full mx-auto"></div>
+            ) : (
+              isLogin ? 'Sign In' : 'Create Account'
+            )}
           </button>
         </form>
-
         <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}

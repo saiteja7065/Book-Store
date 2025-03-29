@@ -20,60 +20,64 @@ const Shop = ({ onAddToCart }) => {
     readingGoal: 'entertainment',
     timeOfDay: 'morning'
   });
+  const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
+  const [isLoadingViewMode, setIsLoadingViewMode] = useState(false);
 
-  const handleToggleWishlist = (bookId) => {
-    setWishlist(prev => {
+  const handleToggleWishlist = async (bookId) => {
+    setIsLoadingWishlist(true);
+    setWishlist((prev) => {
       const newWishlist = prev.includes(bookId)
-        ? prev.filter(id => id !== bookId)
+        ? prev.filter((id) => id !== bookId)
         : [...prev, bookId];
-      
-      toast.success(prev.includes(bookId) 
-        ? 'Removed from wishlist' 
-        : 'Added to wishlist'
+
+      toast.success(
+        prev.includes(bookId) ? 'Removed from wishlist' : 'Added to wishlist'
       );
       return newWishlist;
     });
+    setTimeout(() => setIsLoadingWishlist(false), 500); // Simulate delay
   };
 
   const filteredBooks = useMemo(() => {
     let result = [];
-    
+
     // Get initial books based on genre
     if (selectedGenre === 'All') {
-      Object.values(BOOKS_BY_GENRE).forEach(genreBooks => {
+      Object.values(BOOKS_BY_GENRE).forEach((genreBooks) => {
         result.push(...genreBooks);
       });
     } else {
       result = [...(BOOKS_BY_GENRE[selectedGenre] || [])];
     }
-
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(book => 
-        book.title.toLowerCase().includes(query) ||
-        book.author.toLowerCase().includes(query)
+      result = result.filter(
+        (book) =>
+          book.title.toLowerCase().includes(query) ||
+          book.author.toLowerCase().includes(query)
       );
     }
-
     // Apply price filter
-    result = result.filter(book => {
+    result = result.filter((book) => {
       const price = book.discountedPrice || book.price;
       return price >= priceRange[0] && price <= priceRange[1];
     });
-
     // Apply rating filter
     if (ratingFilter > 0) {
-      result = result.filter(book => book.rating >= ratingFilter);
+      result = result.filter((book) => book.rating >= ratingFilter);
     }
-
     // Apply sorting
     switch (sortBy) {
       case 'price-low':
-        result.sort((a, b) => (a.discountedPrice || a.price) - (b.discountedPrice || b.price));
+        result.sort(
+          (a, b) => (a.discountedPrice || a.price) - (b.discountedPrice || b.price)
+        );
         break;
       case 'price-high':
-        result.sort((a, b) => (b.discountedPrice || b.price) - (a.discountedPrice || a.price));
+        result.sort(
+          (a, b) => (b.discountedPrice || b.price) - (a.discountedPrice || a.price)
+        );
         break;
       case 'rating':
         result.sort((a, b) => b.rating - a.rating);
@@ -89,7 +93,6 @@ const Shop = ({ onAddToCart }) => {
         // 'featured' - no additional sorting needed
         break;
     }
-
     return result;
   }, [selectedGenre, searchQuery, priceRange, ratingFilter, sortBy]);
 
@@ -113,10 +116,8 @@ const Shop = ({ onAddToCart }) => {
                   <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
                 </div>
               </div>
-
               {/* Genre List */}
               <GenreList selectedGenre={selectedGenre} onSelectGenre={setSelectedGenre} />
-
               {/* Price Range Filter */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Range</h3>
@@ -131,12 +132,13 @@ const Shop = ({ onAddToCart }) => {
                     max="2000"
                     step="100"
                     value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                    onChange={(e) =>
+                      setPriceRange([priceRange[0], parseInt(e.target.value)])
+                    }
                     className="w-full"
                   />
                 </div>
               </div>
-
               {/* Rating Filter */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Rating</h3>
@@ -156,7 +158,7 @@ const Shop = ({ onAddToCart }) => {
                           <Star
                             key={index}
                             size={16}
-                            className={`${
+                            className={`$${
                               index < rating
                                 ? 'text-yellow-400 fill-current'
                                 : 'text-gray-300 dark:text-gray-600'
@@ -171,7 +173,6 @@ const Shop = ({ onAddToCart }) => {
               </div>
             </div>
           </div>
-
           {/* Main Content */}
           <div className="md:w-3/4">
             {/* Top Bar - Sort and View Options */}
@@ -191,24 +192,40 @@ const Shop = ({ onAddToCart }) => {
                   </select>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setViewMode('grid')}
+                      onClick={() => {
+                        setIsLoadingViewMode(true);
+                        setViewMode('grid');
+                        setTimeout(() => setIsLoadingViewMode(false), 500);
+                      }}
                       className={`p-2 rounded-lg ${
                         viewMode === 'grid'
                           ? 'bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400'
                           : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      <Filter size={20} />
+                      {isLoadingViewMode ? (
+                        <div className="w-4 h-4 border-2 border-t-blue-400 animate-spin rounded-full"></div>
+                      ) : (
+                        <Filter size={20} />
+                      )}
                     </button>
                     <button
-                      onClick={() => setViewMode('list')}
+                      onClick={() => {
+                        setIsLoadingViewMode(true);
+                        setViewMode('list');
+                        setTimeout(() => setIsLoadingViewMode(false), 500);
+                      }}
                       className={`p-2 rounded-lg ${
                         viewMode === 'list'
                           ? 'bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400'
                           : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      <BookOpen size={20} />
+                      {isLoadingViewMode ? (
+                        <div className="w-4 h-4 border-2 border-t-blue-400 animate-spin rounded-full"></div>
+                      ) : (
+                        <BookOpen size={20} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -217,36 +234,39 @@ const Shop = ({ onAddToCart }) => {
                 </p>
               </div>
             </div>
-
             {/* Books Grid/List */}
             {filteredBooks.length === 0 ? (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
                 <p className="text-gray-600 dark:text-gray-400">No books found matching your criteria</p>
               </div>
             ) : (
-              <div className={`grid gap-6 ${
-                viewMode === 'grid' 
-                  ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                  : 'grid-cols-1'
-              }`}>
+              <div
+                className={`grid gap-6 ${
+                  viewMode === 'grid'
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    : 'grid-cols-1'
+                }`}
+              >
                 {filteredBooks.map((book) => (
                   <div key={book.id} className="relative">
                     <button
                       onClick={() => handleToggleWishlist(book.id)}
                       className="absolute top-2 right-2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:scale-110 transition-transform"
                     >
-                      <Heart
-                        size={20}
-                        className={wishlist.includes(book.id) 
-                          ? 'text-red-500 fill-current' 
-                          : 'text-gray-400 dark:text-gray-500'
-                        }
-                      />
+                      {isLoadingWishlist ? (
+                        <div className="w-4 h-4 border-2 border-t-blue-400 animate-spin rounded-full"></div>
+                      ) : (
+                        <Heart
+                          size={20}
+                          className={
+                            wishlist.includes(book.id)
+                              ? 'text-red-500 fill-current'
+                              : 'text-gray-400 dark:text-gray-500'
+                          }
+                        />
+                      )}
                     </button>
-                    <BookCard
-                      {...book}
-                      onAddToCart={() => onAddToCart(book)}
-                    />
+                    <BookCard {...book} onAddToCart={() => onAddToCart(book)} />
                   </div>
                 ))}
               </div>
